@@ -1,0 +1,25 @@
+apiVersion: v2
+name: argocd-agent-principal
+description: Argo CD Agent Principal for managing agent connections and orchestrating GitOps workflows
+
+type: application
+
+# chart version 
+version: 0.1.1
+
+# application version, ArgoCD Agent version
+appVersion: 0.7.1
+
+home: https://github.com/argoproj-labs/argocd-agent
+sources:
+  - https://github.com/argoproj-labs/argocd-agent
+keywords:
+  - argocd
+  - gitops
+  - principal
+maintainers:
+  - name: Argo Project Maintainers
+    url: https://github.com/argoproj-labs/argocd-agent
+kubeVersion: ">=1.24.0-0"
+annotations:
+  charts.openshift.io/name: "Argo CD Agent - Principal Component"

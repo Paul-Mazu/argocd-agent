@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "argocd-agent-principal.paramsConfigMapName" . }}
+  namespace: {{ include "argocd-agent-principal.namespace" . }}
+  labels:
+    {{- include "argocd-agent-principal.labels" . | nindent 4 }}
+data:
+  principal.listen.host: {{ .Values.listenHost | quote }}
+  principal.listen.port: {{ .Values.listenPort | quote }}
+  principal.log.level: {{ .Values.logLevel | quote }}
+  principal.log.format: {{ .Values.logFormat | quote }}
+  principal.metrics.port: {{ .Values.metricsPort | quote }}
+  principal.healthz.port: {{ .Values.healthzPort | quote }}
+  principal.namespace: {{ .Values.namespace | quote }}
+  principal.allowed-namespaces: {{ .Values.allowedNamespaces | quote }}
+  principal.namespace-create.enable: {{ .Values.namespaceCreateEnable | quote }}
+  principal.namespace-create.pattern: {{ .Values.namespaceCreatePattern | quote }}
+  principal.namespace-create.labels: {{ .Values.namespaceCreateLabels | quote }}
+  principal.tls.secret-name: {{ .Values.tlsSecretName | quote }}
+  principal.tls.server.cert-path: {{ .Values.tlsServerCertPath | quote }}
+  principal.tls.server.key-path: {{ .Values.tlsServerKeyPath | quote }}
+  principal.tls.server.allow-generate: {{ .Values.tlsServerAllowGenerate | quote }}
+  principal.tls.insecure-plaintext: {{ .Values.tlsInsecurePlaintext | quote }}
+  principal.tls.client-cert.require: {{ .Values.tlsClientCertRequire | quote }}
+  principal.tls.server.root-ca-secret-name: {{ .Values.tlsRootCASecretName | quote }}
+  principal.tls.server.root-ca-path: {{ .Values.tlsRootCAPath | quote }}
+  principal.tls.client-cert.match-subject: {{ .Values.tlsClientCertMatchSubject | quote }}
+  principal.tls.min-version: {{ .Values.tlsMinVersion | quote }}
+  principal.tls.max-version: {{ .Values.tlsMaxVersion | quote }}
+  principal.tls.ciphersuites: {{ .Values.tlsCipherSuites | quote }}
+  principal.resource-proxy.secret-name: {{ .Values.resourceProxySecretName | quote }}
+  principal.resource-proxy.tls.cert-path: {{ .Values.resourceProxyTlsCertPath | quote }}
+  principal.resource-proxy.tls.key-path: {{ .Values.resourceProxyTlsKeyPath | quote }}
+  principal.resource-proxy.ca.secret-name: {{ .Values.resourceProxyCaSecretName | quote }}
+  principal.resource-proxy.ca.path: {{ .Values.resourceProxyCaPath | quote }}
+  principal.jwt.allow-generate: {{ .Values.jwtAllowGenerate | quote }}
+  principal.jwt.secret-name: {{ .Values.jwtSecretName | quote }}
+  principal.jwt.key-path: {{ .Values.jwtKeyPath | quote }}
+  principal.auth: {{ .Values.auth | quote }}
+  principal.websocket.enable: {{ .Values.enableWebSocket | quote }}
+  principal.redis.compression.type: {{ .Values.redisCompressionType | quote }}
+  principal.redis.server.address: {{ .Values.redisServerAddress | quote }}
+  principal.resource-proxy.enable: {{ .Values.enableResourceProxy | quote }}
+  principal.keep-alive.min-interval: {{ .Values.keepAliveMinInterval | quote }}
+  principal.pprof.port: {{ .Values.pprofPort | quote }}
+  principal.destination-based-mapping: {{ .Values.destinationBasedMapping | quote }}
+  principal.app-label-selector: {{ .Values.appLabelSelector | quote }}

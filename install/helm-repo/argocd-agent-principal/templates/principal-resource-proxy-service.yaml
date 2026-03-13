@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "argocd-agent-principal.resourceProxyServiceName" . }}
+  namespace: {{ include "argocd-agent-principal.namespace" . }}
+  labels:
+    {{- include "argocd-agent-principal.labels" . | nindent 4 }}
+    app.kubernetes.io/component: resource-proxy
+  {{- with .Values.service.resourceProxy.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ports:
+  - name: resource-proxy
+    protocol: TCP
+    port: {{ .Values.service.resourceProxy.port }}
+    targetPort: {{ .Values.service.resourceProxy.targetPort }}
+  selector:
+    {{- include "argocd-agent-principal.selectorLabels" . | nindent 4 }}

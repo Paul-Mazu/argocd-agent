@@ -1,0 +1,290 @@
+# Default values for argocd-agent-principal.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## @section Global
+# -- Override namespace to deploy the principal into. Leave empty to use the release namespace.
+namespaceOverride: ""
+# -- Override the name of the chart.
+nameOverride: ""
+# -- Override the full name of resources. If set, all resources use this as their base name.
+fullnameOverride: ""
+
+## @section Image
+image:
+  # -- Container image repository for the principal.
+  repository: 851725609984.dkr.ecr.eu-west-1.amazonaws.com/argocd-agent
+  # -- Container image tag for the principal.
+  tag: v0.7.1
+  # -- Image pull policy for the principal container.
+  pullPolicy: "Always"
+
+# -- List of image pull secrets for private registries.
+imagePullSecrets: []
+
+## @section Deployment
+# -- Number of replicas for the principal Deployment.
+replicaCount: 1
+# -- Resource requests and limits for the principal Pod.
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+## @section ServiceAccount
+# -- ServiceAccount configuration.
+serviceAccount:
+  # -- Whether to create the ServiceAccount.
+  create: true
+  # -- Name of the ServiceAccount to use. If empty, a name is generated.
+  name: ""
+  # -- Annotations to add to the ServiceAccount.
+  annotations: {}
+  # -- Automount API credentials for the Service Account.
+  automountServiceAccountToken: true
+
+## @section Pod Scheduling and Metadata
+# -- Node selector for scheduling the principal Pod.
+nodeSelector: {}
+# -- Affinity rules for the principal Pod.
+affinity: {}
+# -- Tolerations for the principal Pod.
+tolerations: []
+# -- Additional annotations to add to the principal Pod.
+podAnnotations: {}
+# -- Additional labels to add to the principal Pod.
+podLabels: {}
+# -- PriorityClassName for the principal Pod.
+priorityClassName: ""
+
+## @section Probes
+# -- Liveness and readiness probe configuration.
+probes:
+  liveness:
+    # -- Enable the liveness probe.
+    enabled: true
+    httpGet:
+      path: /healthz
+      port: healthz
+    # -- Initial delay before the first liveness probe.
+    initialDelaySeconds: 10
+    # -- Frequency of liveness probes.
+    periodSeconds: 10
+    # -- Timeout for liveness probe.
+    timeoutSeconds: 2
+    # -- Failure threshold for liveness probe.
+    failureThreshold: 3
+  readiness:
+    # -- Enable the readiness probe.
+    enabled: true
+    httpGet:
+      path: /healthz
+      port: healthz
+    # -- Initial delay before the first readiness probe.
+    initialDelaySeconds: 5
+    # -- Frequency of readiness probes.
+    periodSeconds: 10
+    # -- Timeout for readiness probe.
+    timeoutSeconds: 2
+    # -- Failure threshold for readiness probe.
+    failureThreshold: 3
+
+## @section Principal Network Parameters
+# -- Listen host for the gRPC server. Empty for all interfaces.
+listenHost: ""
+# -- Listen port for the gRPC server.
+listenPort: "8443"
+# -- Log level for the principal (trace, debug, info, warn, error).
+logLevel: "info"
+# -- Log format (text or json).
+logFormat: "text"
+# -- Metrics server port exposed by the principal.
+metricsPort: "8000"
+# -- Healthz server port exposed by the principal.
+healthzPort: "8003"
+# -- Namespace the principal will operate in. If blank, uses pod namespace.
+namespace: "argocd"
+# -- Comma-separated list of namespaces to watch. Supports shell-style wildcards.
+allowedNamespaces: ""
+
+## @section Namespace Creation
+# -- Whether the principal is allowed to create namespaces for agents.
+namespaceCreateEnable: "false"
+# -- Regexp pattern to restrict namespace names to be created.
+namespaceCreatePattern: ""
+# -- Labels to apply to created namespaces (format: "key=value,key2=value2").
+namespaceCreateLabels: ""
+
+## @section TLS Configuration
+# -- Name of the secret containing the TLS certificate and key.
+tlsSecretName: "argocd-agent-principal-tls"
+# -- Path to the TLS certificate for the gRPC server.
+tlsServerCertPath: ""
+# -- Path to the TLS private key for the gRPC server.
+tlsServerKeyPath: ""
+# -- Allow the principal to generate its own TLS cert/key on startup (insecure, dev only).
+tlsServerAllowGenerate: "false"
+# -- Run gRPC server without TLS. Only use behind a service mesh.
+tlsInsecurePlaintext: "false"
+# -- Whether to require client certs from agents.
+tlsClientCertRequire: "false"
+# -- Name of the secret containing the root CA TLS certificate.
+tlsRootCASecretName: "argocd-agent-ca"
+# -- Path to a TLS root CA to validate agent client certificates.
+tlsRootCAPath: ""
+# -- Whether to match client cert subject to agent name.
+tlsClientCertMatchSubject: "false"
+# -- Minimum TLS version (tls1.1, tls1.2, tls1.3).
+tlsMinVersion: "tls1.3"
+# -- Maximum TLS version (tls1.1, tls1.2, tls1.3). Empty uses highest available.
+tlsMaxVersion: ""
+# -- Comma-separated list of TLS cipher suites. Empty uses Go defaults.
+tlsCipherSuites: ""
+
+## @section Resource Proxy
+# -- Whether to enable the resource proxy.
+enableResourceProxy: "true"
+# -- Name of the secret containing TLS cert/key for the resource proxy.
+resourceProxySecretName: "argocd-agent-resource-proxy-tls"
+# -- Path to TLS certificate for the resource proxy.
+resourceProxyTlsCertPath: ""
+# -- Path to TLS private key for the resource proxy.
+resourceProxyTlsKeyPath: ""
+# -- Name of the secret containing the CA certificate for the resource proxy.
+resourceProxyCaSecretName: "argocd-agent-ca"
+# -- Path to the CA certificate for the resource proxy.
+resourceProxyCaPath: ""
+
+## @section JWT Configuration
+# -- Allow the principal to generate its own JWT signing key (insecure, dev only).
+jwtAllowGenerate: "false"
+# -- Name of the secret containing the JWT signing key.
+jwtSecretName: "argocd-agent-jwt"
+# -- Path to the private key for signing JWT tokens.
+jwtKeyPath: ""
+
+## @section Authentication
+# -- Authentication method. Format: <method>:<configuration>.
+# Valid values:
+#   "mtls:CN=([^,]+)" - mTLS with regex for extracting agent ID from cert subject
+#   "userpass:<path>" - username/password (deprecated, dev only)
+#   "header:<header_name>:<extraction_regex>" - header-based for service mesh
+auth: "mtls:subject:CN=([^,]+)"
+
+## @section WebSocket
+# -- Whether to use websocket to stream events to the agent.
+enableWebSocket: "false"
+
+## @section Redis
+# -- Compression type for the Redis connection.
+redisCompressionType: "gzip"
+# -- Address of the Redis server.
+redisServerAddress: "argo-cd-argocd-redis:6379"
+# -- ArgoCD Redis password secret name.
+argoCdRedisSecretName: "argocd-redis"
+# -- ArgoCD Redis password key.
+argoCdRedisPasswordKey: "auth"
+
+## @section Keep-Alive
+# -- Drop agent connections that send keepalive pings more often than this interval (0 = disabled).
+keepAliveMinInterval: "0"
+
+## @section Profiling
+# -- Port for the pprof server (0 disables pprof).
+pprofPort: "0"
+
+## @section Destination-Based Mapping
+# -- Use destination-based mapping for routing applications to agents.
+destinationBasedMapping: "false"
+
+## @section Application Filtering
+# -- Kubernetes label selector to restrict which Applications the principal watches.
+appLabelSelector: ""
+
+## @section Userpass Secret
+# -- Userpass secret configuration for agent authentication.
+userpassSecret:
+  # -- Whether to create the userpass secret.
+  create: true
+  # -- Content of the passwd file.
+  passwd: ""
+
+## @section Services
+# -- Service configuration for various endpoints.
+service:
+  grpc:
+    # -- Service type for the gRPC endpoint.
+    type: LoadBalancer
+    # -- Service port for gRPC.
+    port: 443
+    # -- Target port for gRPC.
+    targetPort: 8443
+    # -- Annotations to add to the gRPC Service.
+    annotations: {}
+  metrics:
+    # -- Service port for metrics.
+    port: 8000
+    # -- Target port for metrics.
+    targetPort: 8000
+    # -- Annotations to add to the metrics Service.
+    annotations: {}
+  healthz:
+    # -- Service port for healthz.
+    port: 8003
+    # -- Target port for healthz.
+    targetPort: 8003
+    # -- Annotations to add to the healthz Service.
+    annotations: {}
+  redisProxy:
+    # -- Service port for Redis proxy.
+    port: 6379
+    # -- Target port for Redis proxy.
+    targetPort: 6379
+    # -- Annotations to add to the Redis proxy Service.
+    annotations: {}
+  resourceProxy:
+    # -- Service port for resource proxy.
+    port: 9090
+    # -- Target port for resource proxy.
+    targetPort: 9090
+    # -- Annotations to add to the resource proxy Service.
+    annotations: {}
+
+## @section ServiceMonitor
+# -- Prometheus ServiceMonitor configuration.
+serviceMonitor:
+  # -- Whether to create a ServiceMonitor resource.
+  enabled: false
+  # -- Prometheus ServiceMonitor labels.
+  additionalLabels: {}
+  # -- Prometheus ServiceMonitor annotations.
+  annotations: {}
+  # -- Namespace where the ServiceMonitor should be created. Defaults to release namespace.
+  namespace: ""
+  # -- Prometheus scrape interval.
+  interval: "30s"
+  # -- Prometheus scrape timeout.
+  scrapeTimeout: "10s"
+  # -- Prometheus RelabelConfigs.
+  relabelings: []
+  # -- Prometheus MetricRelabelConfigs.
+  metricRelabelings: []
+  # -- When true, honorLabels preserves the metric's labels when they collide.
+  honorLabels: false
+  # -- Prometheus ServiceMonitor scheme.
+  scheme: ""
+  # -- Prometheus ServiceMonitor tlsConfig.
+  tlsConfig: {}
+
+## @section Tests
+# -- Configuration for helm-chart tests.
+tests:
+  # -- By default, chart tests are disabled.
+  enabled: false
+  # -- Test image.
+  image: bitnamilegacy/kubectl
+  # -- Test image tag.
+  tag: "1.33.4"
