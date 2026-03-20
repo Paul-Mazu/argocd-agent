@@ -1,0 +1,48 @@
+Thank you for installing {{ include "argocd-agent-principal.name" . }}!
+
+Your principal has been deployed to the {{ include "argocd-agent-principal.namespace" . }} namespace.
+
+Release: {{ .Release.Name }}
+Namespace: {{ include "argocd-agent-principal.namespace" . }}
+
+Deployment
+----------
+- Name: {{ include "argocd-agent-principal.deploymentName" . }}
+- Replicas: {{ .Values.replicaCount }}
+- Image: {{ .Values.image.repository }}:{{ .Values.image.tag }} (pullPolicy: {{ .Values.image.pullPolicy }})
+
+Services
+--------
+- gRPC Service:         {{ include "argocd-agent-principal.grpcServiceName" . }}
+  - Type: {{ .Values.service.grpc.type }}
+  - Port/TargetPort: {{ .Values.service.grpc.port }} / {{ .Values.service.grpc.targetPort }}
+- Metrics Service:      {{ include "argocd-agent-principal.metricsServiceName" . }}
+  - Port/TargetPort: {{ .Values.service.metrics.port }} / {{ .Values.service.metrics.targetPort }}
+- Healthz Service:      {{ include "argocd-agent-principal.healthzServiceName" . }}
+  - Port/TargetPort: {{ .Values.service.healthz.port }} / {{ .Values.service.healthz.targetPort }}
+- Redis Proxy Service:  {{ include "argocd-agent-principal.redisProxyServiceName" . }}
+  - Port/TargetPort: {{ .Values.service.redisProxy.port }} / {{ .Values.service.redisProxy.targetPort }}
+- Resource Proxy Service: {{ include "argocd-agent-principal.resourceProxyServiceName" . }}
+  - Port/TargetPort: {{ .Values.service.resourceProxy.port }} / {{ .Values.service.resourceProxy.targetPort }}
+
+Quick checks
+------------
+1) Check Deployment rollout
+   kubectl -n {{ include "argocd-agent-principal.namespace" . }} rollout status deploy/{{ include "argocd-agent-principal.deploymentName" . }}
+
+2) List Services
+   kubectl -n {{ include "argocd-agent-principal.namespace" . }} get svc -l app.kubernetes.io/instance={{ .Release.Name }}
+
+3) Port-forward to gRPC
+   kubectl -n {{ include "argocd-agent-principal.namespace" . }} port-forward svc/{{ include "argocd-agent-principal.grpcServiceName" . }} 8443:{{ .Values.service.grpc.port }}
+
+4) Probe healthz
+   kubectl -n {{ include "argocd-agent-principal.namespace" . }} port-forward svc/{{ include "argocd-agent-principal.healthzServiceName" . }} 8003:{{ .Values.service.healthz.port }}
+   curl -sf http://127.0.0.1:8003/healthz
+
+Configuration overview
+----------------------
+- Auth: {{ .Values.auth }}
+- Redis address: {{ .Values.redisServerAddress }}
+- TLS min version: {{ .Values.tlsMinVersion }}
+- Resource proxy enabled: {{ .Values.enableResourceProxy }}
