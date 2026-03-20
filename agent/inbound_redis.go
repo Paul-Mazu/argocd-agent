@@ -17,14 +17,17 @@ package agent
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"net"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/argoproj-labs/argocd-agent/internal/event"
 	"github.com/argoproj-labs/argocd-agent/internal/logging/logfields"
+	"github.com/argoproj-labs/argocd-agent/internal/tlsutil"
 	rediscache "github.com/go-redis/cache/v9"
 	"github.com/redis/go-redis/v9"
 	"github.com/redis/go-redis/v9/maintnotifications"
@@ -45,6 +48,12 @@ type redisProxyMsgHandler struct {
 
 	// connections maintains statistics about redis connections from principal
 	connections *connectionEntries
+
+	// Redis TLS configuration
+	redisTLSEnabled  bool
+	redisTLSCAPath   string
+	redisTLSCA       *x509.CertPool // CA cert pool loaded from secret
+	redisTLSInsecure bool
 }
 
 // connectionEntries maintains statistics about redis connections from principal
@@ -298,6 +307,12 @@ func (a *Agent) handleRedisGetMessage(logCtx *logrus.Entry, rreq *event.RedisReq
 // needs to be converted to, e.g.
 // "app|resources-tree|my-app|1.8.3.gz
 func stripNamespaceFromRedisKey(key string, logCtx *logrus.Entry) (string, error) {
+
+	// git-refs and gitdirs keys don't contain namespace information; return as-is
+	if strings.HasPrefix(key, "git-refs|") || strings.HasPrefix(key, "gitdirs|") {
+		return key, nil
+	}
+
 	var matchedPrefix string
 	expectedPrefixes := []string{
 		"app|resources-tree|",
@@ -340,7 +355,31 @@ func stripNamespaceFromRedisKey(key string, logCtx *logrus.Entry) (string, error
 }
 
 func (a *Agent) getRedisClientAndCache() (*redis.Client, *rediscache.Cache, error) {
-	var tlsConfig *tls.Config = nil
+	// Create TLS config for Redis client
+	var tlsConfig *tls.Config
+	if a.redisProxyMsgHandler.redisTLSEnabled {
+		serverName, _, err := net.SplitHostPort(a.redisProxyMsgHandler.redisAddress)
+		if err != nil {
+			serverName = a.redisProxyMsgHandler.redisAddress
+		}
+		tlsConfig = &tls.Config{
+			ServerName: serverName,
+		}
+		if a.redisProxyMsgHandler.redisTLSInsecure {
+			tlsConfig.InsecureSkipVerify = true
+			log().Warn("INSECURE: Redis client not verifying Redis TLS certificate")
+		} else if a.redisProxyMsgHandler.redisTLSCA != nil {
+			tlsConfig.RootCAs = a.redisProxyMsgHandler.redisTLSCA
+		} else if a.redisProxyMsgHandler.redisTLSCAPath != "" {
+			caPool, err := tlsutil.X509CertPoolFromFile(a.redisProxyMsgHandler.redisTLSCAPath)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to load Redis CA certificate: %w", err)
+			}
+			tlsConfig.RootCAs = caPool
+		} else {
+			return nil, nil, fmt.Errorf("redis TLS enabled but no CA certificate configured for Redis client")
+		}
+	}
 
 	opts := &redis.Options{
 		Addr:       a.redisProxyMsgHandler.redisAddress,
