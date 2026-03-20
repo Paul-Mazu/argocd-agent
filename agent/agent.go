@@ -405,7 +405,7 @@ func NewAgent(ctx context.Context, client *kube.KubernetesClient, namespace stri
 
 func (a *Agent) Start(ctx context.Context) error {
 	infCtx, cancelFn := context.WithCancel(ctx)
-	log().Infof("Starting %s (agent) v%s (ns=%s, allowed_namespaces=%v, mode=%s, auth=%s)", a.version.Name(), a.version.Version(), a.namespace, a.options.namespaces, a.mode, a.remote.AuthMethod())
+	log().Infof("Starting %s (agent) v%s (ns=%s, allowed_namespaces=%v, mode=%s, auth=%s)", a.version.Name(), a.version.Version(), a.namespace, a.allowedNamespaces, a.mode, a.remote.AuthMethod())
 	a.context = infCtx
 	a.cancelFn = cancelFn
 
