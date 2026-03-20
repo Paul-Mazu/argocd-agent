@@ -15,6 +15,9 @@ image:
   # -- Image pull policy for the agent container.
   pullPolicy: "Always"
 
+# -- List of image pull secrets for private registries.
+imagePullSecrets: []
+
 ## @section Deployment
 # -- Number of replicas for the agent Deployment.
 replicaCount: 1
